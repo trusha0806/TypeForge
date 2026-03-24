@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TypeForge — Master the Keys</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.2/peerjs.min.js"></script>
+<style>
+:root {
+  --bg: #0d0d14;
+  --surface: #13131c;
+  --surface2: #1a1a26;
+  --border: #2a2a3e;
+  --accent: #d4f542;
+  --accent2: #4dffc3;
+  --accent3: #ff6b9d;
+  --text: #e2e2f0;
+  --text-dim: #6a6a88;
+  --text-muted: #9090b4;
+  --correct: #4ec99a;
+  --wrong: #e05c7a;
+  --cursor: #d4f542;
+  --font-mono: 'Space Mono', monospace;
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --line-h: 68px;
+  --grid-line: rgba(200,220,100,0.04);
+}
+body.light {
+  --bg: #f5f4ef;
+  --surface: #fffffe;
+  --surface2: #eeede8;
+  --border: #d4d3cc;
+  --accent: #4a5c00;
+  --accent2: #006e50;
+  --accent3: #b0004e;
+  --text: #1a1a2e;
+  --text-dim: #888880;
+  --text-muted: #b0b0a8;
+  --correct: #2a7a55;
+  --wrong: #b02030;
+  --cursor: #4a5c00;
+  --grid-line: rgba(0,0,0,0.04);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--font-body); min-height: 100vh; overflow-x: hidden; }
+body::before {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image: linear-gradient(var(--grid-line) 1px,transparent 1px), linear-gradient(90deg,var(--grid-line) 1px,transparent 1px);
+  background-size: 40px 40px;
+}
+.glow-orb { position: fixed; bottom: -300px; right: -200px; width: 700px; height: 700px; background: radial-gradient(circle,rgba(100,180,100,0.06) 0%,transparent 70%); pointer-events: none; z-index: 0; }
+.container { max-width: 960px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+header { padding: 26px 0 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+.logo { font-family: var(--font-display); font-size: 32px; letter-spacing: 3px; display: flex; align-items: center; gap: 10px; }
+.logo-dot { width: 9px; height: 9px; background: var(--accent); border-radius: 50%; animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(232,255,107,0.4); } 50% { box-shadow: 0 0 0 7px rgba(232,255,107,0); } }
+.header-stats { display: flex; gap: 20px; font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+.header-stat span { color: var(--accent); font-weight: 700; }
+
+.tab-bar { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+.tab { background: none; border: none; border-bottom: 2px solid transparent; color: var(--text-dim); font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 2px; padding: 13px 20px; cursor: pointer; transition: all 0.15s; margin-bottom: -1px; }
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+.mode-bar { display: flex; align-items: center; gap: 8px; padding: 0 0 16px; flex-wrap: wrap; }
+.mode-label { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 2px; margin-right: 4px; }
+.mode-btn { background: transparent; border: 1px solid var(--border); color: var(--text-dim); font-family: var(--font-mono); font-size: 11px; padding: 5px 14px; cursor: pointer; transition: all 0.15s; text-transform: uppercase; letter-spacing: 1px; }
+.mode-btn:hover { border-color: var(--text-dim); color: var(--text); }
+.mode-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(232,255,107,0.06); }
+.separator { width: 1px; height: 18px; background: var(--border); margin: 0 6px; }
+
+.stats-bar { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 18px; }
+.stat-card { background: var(--surface); border: 1px solid var(--border); padding: 13px 16px; position: relative; overflow: hidden; }
+.stat-card::before { content: ''; position: absolute; bottom: 0; left: 0; height: 2px; width: 0%; background: var(--accent); transition: width 0.3s; }
+.stat-card.live::before { width: 100%; }
+.stat-label { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 4px; }
+.stat-value { font-family: var(--font-display); font-size: 34px; letter-spacing: 2px; line-height: 1; color: var(--text); }
+.stat-value.accent { color: var(--accent); } .stat-value.green { color: var(--accent2); } .stat-value.pink { color: var(--accent3); }
+.stat-unit { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); margin-top: 2px; }
+
+.progress-track { background: var(--surface2); height: 3px; width: 100%; margin-bottom: 16px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg,var(--accent2),var(--accent)); transition: width 0.1s linear; width: 0%; }
+
+.test-container { background: var(--surface); border: 1px solid var(--border); padding: 34px 42px; margin-bottom: 14px; position: relative; transition: border-color 0.3s; cursor: text; }
+.test-container.active { border-color: rgba(232,255,107,0.25); }
+.test-container.finished { border-color: rgba(107,255,206,0.25); }
+
+.words-wrapper { position: relative; height: calc(var(--line-h) * 3); overflow: hidden; }
+.words-wrapper::before,.words-wrapper::after { content: ''; position: absolute; left: 0; right: 0; height: var(--line-h); z-index: 2; pointer-events: none; }
+.words-wrapper::before { top: 0; background: linear-gradient(to bottom,var(--surface),transparent); }
+.words-wrapper::after { bottom: 0; background: linear-gradient(to top,var(--surface),transparent); }
+
+.words-display { font-family: var(--font-mono); font-size: 32px; line-height: var(--line-h); letter-spacing: 1px; color: var(--text-muted); user-select: none; transform: translateY(0px); transition: transform 0.2s cubic-bezier(0.4,0,0.2,1); word-break: normal; overflow-wrap: normal; }
+.char { position: relative; }
+.char.correct { color: var(--correct); }
+.char.wrong { color: var(--wrong); background: rgba(224,92,122,0.08); border-radius: 2px; }
+.char.current { color: var(--text-muted); }
+.char.current::before { content: ''; position: absolute; left: -1px; top: 10%; bottom: 5%; width: 2px; background: var(--cursor); border-radius: 1px; z-index: 1; animation: cursorBlink 0.9s step-end infinite; }
+@keyframes cursorBlink { 0%,100% { opacity:1; } 50% { opacity:0; } }
+.char.extra { color: var(--wrong); text-decoration: underline wavy; }
+
+.click-hint { text-align: center; font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); margin-top: 16px; letter-spacing: 1px; animation: fadeIO 3s ease-in-out infinite; }
+@keyframes fadeIO { 0%,100%{opacity:0.4;} 50%{opacity:1;} }
+
+.timer-ring { position: absolute; top: 12px; right: 12px; width: 46px; height: 46px; }
+.timer-ring svg { transform: rotate(-90deg); }
+.timer-ring-bg { fill: none; stroke: var(--border); stroke-width: 3; }
+.timer-ring-fill { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 126; stroke-dashoffset: 0; transition: stroke-dashoffset 1s linear; }
+.timer-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 14px; color: var(--accent); letter-spacing: 1px; }
+
+.results { display: none; background: var(--surface); border: 1px solid var(--border); padding: 32px; margin-bottom: 14px; text-align: center; animation: slideUp 0.4s cubic-bezier(0.16,1,0.3,1); }
+@keyframes slideUp { from{opacity:0;transform:translateY(14px);} to{opacity:1;transform:translateY(0);} }
+.results.show { display: block; }
+.results-title { font-family: var(--font-display); font-size: 12px; letter-spacing: 4px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 24px; }
+.results-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 24px; }
+.result-item { padding: 16px; border: 1px solid var(--border); }
+.result-label { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px; }
+.result-val { font-family: var(--font-display); font-size: 42px; letter-spacing: 2px; line-height: 1; }
+.result-unit { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); margin-top: 3px; }
+.wpm-chart { height: 52px; background: var(--surface2); border: 1px solid var(--border); margin-bottom: 18px; overflow: hidden; }
+
+.controls { display: flex; justify-content: center; gap: 10px; margin-bottom: 28px; }
+.btn { background: transparent; border: 1px solid var(--border); color: var(--text-dim); font-family: var(--font-mono); font-size: 11px; padding: 8px 24px; cursor: pointer; transition: all 0.15s; text-transform: uppercase; letter-spacing: 2px; display: flex; align-items: center; gap: 8px; }
+.btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(232,255,107,0.04); }
+.btn.primary { border-color: var(--accent); color: var(--accent); background: rgba(232,255,107,0.06); }
+.btn.primary:hover { background: rgba(232,255,107,0.12); }
+.btn:disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
+
+
+/* RACE */
+#pane-solo,#pane-race { display: none; }
+#pane-solo.active,#pane-race.active { display: block; }
+
+.race-lobby { background: var(--surface); border: 1px solid var(--border); padding: 36px; text-align: center; margin-bottom: 14px; }
+.race-lobby h2 { font-family: var(--font-display); font-size: 26px; letter-spacing: 4px; color: var(--text); margin-bottom: 6px; text-transform: uppercase; }
+.race-lobby p { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); letter-spacing: 1px; margin-bottom: 26px; }
+.lobby-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.lobby-card { border: 1px solid var(--border); padding: 26px 22px; cursor: pointer; transition: all 0.2s; text-align: left; background: var(--surface2); }
+.lobby-card:hover { border-color: var(--accent); background: rgba(232,255,107,0.04); }
+.lobby-card-icon { font-size: 26px; margin-bottom: 10px; }
+.lobby-card-title { font-family: var(--font-display); font-size: 20px; letter-spacing: 2px; color: var(--text); margin-bottom: 5px; }
+.lobby-card-desc { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); letter-spacing: 1px; line-height: 1.6; }
+
+.room-setup { display: none; background: var(--surface); border: 1px solid var(--border); padding: 32px; margin-bottom: 14px; }
+.room-setup.show { display: block; }
+.room-setup-title { font-family: var(--font-display); font-size: 18px; letter-spacing: 3px; color: var(--text); text-transform: uppercase; margin-bottom: 16px; }
+.room-code-display { font-family: var(--font-display); font-size: 58px; letter-spacing: 14px; color: var(--accent); text-align: center; padding: 20px; border: 1px solid rgba(232,255,107,0.3); background: rgba(232,255,107,0.04); margin-bottom: 12px; cursor: pointer; transition: background 0.15s; user-select: all; }
+.room-code-display:hover { background: rgba(232,255,107,0.08); }
+.room-code-hint { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); text-align: center; letter-spacing: 1px; margin-bottom: 20px; }
+.join-form { display: flex; gap: 10px; margin-bottom: 18px; }
+.join-input { flex: 1; background: var(--surface2); border: 1px solid var(--border); color: var(--text); font-family: var(--font-display); font-size: 26px; letter-spacing: 8px; text-align: center; padding: 10px 14px; text-transform: uppercase; outline: none; transition: border-color 0.2s; }
+.join-input:focus { border-color: var(--accent); }
+.join-input::placeholder { color: var(--text-muted); letter-spacing: 4px; font-size: 18px; }
+.peer-list { margin-bottom: 18px; }
+.peer-list-title { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+.peer-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border: 1px solid var(--border); margin-bottom: 5px; font-family: var(--font-mono); font-size: 12px; color: var(--text); }
+.peer-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent2); animation: pulse 1.5s infinite; flex-shrink: 0; }
+.peer-dot.me { background: var(--accent); }
+.conn-status { font-family: var(--font-mono); font-size: 10px; letter-spacing: 1px; padding: 9px 12px; border: 1px solid var(--border); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; color: var(--text-dim); }
+.conn-status.ok { border-color: rgba(94,196,154,0.3); color: var(--correct); }
+.conn-status.err { border-color: rgba(224,92,122,0.3); color: var(--wrong); }
+.conn-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+.race-track-section { display: none; margin-bottom: 14px; }
+.race-track-section.show { display: block; }
+.race-track { background: var(--surface); border: 1px solid var(--border); padding: 18px 22px; margin-bottom: 14px; }
+.race-track-title { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 14px; }
+.racer-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.racer-row:last-child { border-bottom: none; }
+.racer-name { font-family: var(--font-mono); font-size: 11px; width: 90px; flex-shrink: 0; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.racer-name.me { color: var(--accent); }
+.racer-track { flex: 1; background: var(--surface2); height: 10px; border-radius: 5px; position: relative; overflow: hidden; }
+.racer-fill { height: 100%; border-radius: 5px; transition: width 0.2s linear; width: 0%; }
+.racer-fill.me { background: linear-gradient(90deg,var(--accent2),var(--accent)); }
+.racer-fill.them { background: linear-gradient(90deg,#a06bff,#ff6bce); }
+.racer-wpm { font-family: var(--font-display); font-size: 20px; color: var(--text-dim); width: 52px; text-align: right; flex-shrink: 0; letter-spacing: 1px; }
+.racer-wpm.me { color: var(--accent); }
+
+.countdown-overlay { display: none; position: absolute; inset: 0; background: rgba(13,13,20,0.92); align-items: center; justify-content: center; z-index: 10; flex-direction: column; gap: 6px; }
+.countdown-overlay.show { display: flex; }
+.countdown-num { font-family: var(--font-display); font-size: 88px; letter-spacing: 6px; color: var(--accent); animation: countPop 1s ease-out; }
+@keyframes countPop { 0%{transform:scale(1.5);opacity:0;} 30%{transform:scale(1);opacity:1;} 80%{transform:scale(1);opacity:1;} 100%{transform:scale(0.85);opacity:0.5;} }
+.countdown-sub { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); letter-spacing: 3px; text-transform: uppercase; }
+
+.race-results { display: none; background: var(--surface); border: 1px solid var(--border); padding: 32px; margin-bottom: 14px; text-align: center; animation: slideUp 0.4s cubic-bezier(0.16,1,0.3,1); }
+.race-results.show { display: block; }
+.race-winner-badge { font-family: var(--font-display); font-size: 11px; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 8px; display: inline-block; padding: 4px 14px; border: 1px solid; border-radius: 2px; }
+.race-winner-badge.win { color: var(--accent); border-color: rgba(232,255,107,0.4); background: rgba(232,255,107,0.06); }
+.race-winner-badge.loss { color: var(--text-dim); border-color: var(--border); }
+.race-winner-badge.tie { color: var(--accent2); border-color: rgba(107,255,206,0.4); }
+.race-winner-name { font-family: var(--font-display); font-size: 48px; letter-spacing: 4px; color: var(--text); margin-bottom: 22px; }
+.race-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 22px; }
+.race-stat-col { border: 1px solid var(--border); padding: 18px; }
+.race-stat-col.winner { border-color: rgba(232,255,107,0.3); background: rgba(232,255,107,0.03); }
+.race-col-name { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; }
+.race-col-wpm { font-family: var(--font-display); font-size: 50px; letter-spacing: 2px; color: var(--accent); }
+.race-col-acc { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); margin-top: 3px; }
+
+.toast { position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--surface2); border: 1px solid var(--border); padding: 9px 20px; font-family: var(--font-mono); font-size: 11px; color: var(--text); letter-spacing: 1px; transition: transform 0.3s cubic-bezier(0.16,1,0.3,1); z-index: 100; white-space: nowrap; }
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+@media(max-width:680px){
+  .stats-bar{grid-template-columns:repeat(2,1fr);}
+  .results-grid{grid-template-columns:repeat(2,1fr);}
+  .lobby-cards{grid-template-columns:1fr;}
+  .race-stats-grid{grid-template-columns:1fr;}
+  .header-stats{display:none;}
+  :root{--line-h:44px;}
+  .words-display{font-size:18px;}
+  .key{width:26px;height:26px;font-size:7px;}
+  .key.wide-1-5{width:40px;}.key.wide-2{width:52px;}.key.wide-2-5{width:62px;}.key.wide-3{width:74px;}.key.space{width:170px;}
+}
+
+/* Theme toggle */
+.theme-toggle {
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text); font-size: 16px; width: 36px; height: 36px;
+  border-radius: 50%; cursor: pointer; display: flex; align-items: center;
+  justify-content: center; transition: all 0.2s; flex-shrink: 0;
+}
+.theme-toggle:hover { border-color: var(--accent); transform: rotate(20deg); }
+
+/* Light mode surface overrides */
+body.light body::before { opacity: 0.5; }
+body.light .glow-orb { opacity: 0.3; }
+
+</style>
+</head>
+<body>
+<div class="glow-orb"></div>
+<input type="text" id="typing-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+<div class="container">
+
+  <header>
+    <div class="logo"><div class="logo-dot"></div>TypeForge</div>
+    <div class="header-right" style="display:flex;align-items:center;gap:20px;">
+    <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode">🌙</button>
+    <div class="header-stats">
+      <div class="header-stat">Best WPM: <span id="best-wpm">—</span></div>
+      <div class="header-stat">Tests: <span id="test-count">0</span></div>
+      <div class="header-stat">Avg Acc: <span id="avg-acc">—</span></div>
+    </div>
+  </div>
+  </header>
+
+  <div class="tab-bar">
+    <button class="tab active" onclick="switchTab('solo',this)">Solo Practice</button>
+    <button class="tab" onclick="switchTab('race',this)">⚡ Race a Friend</button>
+  </div>
+
+  <!-- SOLO PANE -->
+  <div id="pane-solo" class="active">
+    <div class="mode-bar">
+      <span class="mode-label">Mode</span>
+      <button class="mode-btn active" data-mode="timed" onclick="setMode('timed',this)">Timed</button>
+      <button class="mode-btn" data-mode="words" onclick="setMode('words',this)">Words</button>
+      <button class="mode-btn" data-mode="quote" onclick="setMode('quote',this)">Quote</button>
+      <div class="separator"></div>
+      <span class="mode-label">Duration</span>
+      <button class="mode-btn active sub-btn" data-sub="15" onclick="setSub(15,this)">15s</button>
+      <button class="mode-btn sub-btn" data-sub="30" onclick="setSub(30,this)">30s</button>
+      <button class="mode-btn sub-btn" data-sub="60" onclick="setSub(60,this)">60s</button>
+      <button class="mode-btn sub-btn" data-sub="120" onclick="setSub(120,this)">120s</button>
+      <div class="separator" id="word-sep" style="display:none"></div>
+      <span class="mode-label" id="word-label" style="display:none">Words</span>
+      <button class="mode-btn sub-btn word-btn" data-sub="25" onclick="setSub(25,this)" style="display:none">25</button>
+      <button class="mode-btn sub-btn word-btn" data-sub="50" onclick="setSub(50,this)" style="display:none">50</button>
+      <button class="mode-btn sub-btn word-btn" data-sub="100" onclick="setSub(100,this)" style="display:none">100</button>
+    </div>
+    <div class="stats-bar">
+      <div class="stat-card" id="wpm-card"><div class="stat-label">WPM</div><div class="stat-value accent" id="wpm-display">—</div><div class="stat-unit">words/min</div></div>
+      <div class="stat-card"><div class="stat-label">Accuracy</div><div class="stat-value green" id="acc-display">—</div><div class="stat-unit">percent</div></div>
+      <div class="stat-card"><div class="stat-label">Time</div><div class="stat-value" id="time-display">—</div><div class="stat-unit">seconds</div></div>
+      <div class="stat-card"><div class="stat-label">Keystrokes</div><div class="stat-value pink" id="keys-display">0</div><div class="stat-unit">total / errors</div></div>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    <div class="test-container" id="test-container" onclick="focusInput()">
+      <div class="timer-ring" id="timer-ring" style="display:none">
+        <svg viewBox="0 0 50 50" width="46" height="46"><circle class="timer-ring-bg" cx="25" cy="25" r="20"/><circle class="timer-ring-fill" id="timer-ring-fill" cx="25" cy="25" r="20"/></svg>
+        <div class="timer-text" id="timer-text">—</div>
+      </div>
+      <div class="words-wrapper"><div class="words-display" id="words-display"></div></div>
+      <div class="click-hint" id="click-hint">— click here or start typing —</div>
+    </div>
+    <div class="results" id="results">
+      <div class="results-title">✦ Test Complete ✦</div>
+      <div class="results-grid">
+        <div class="result-item"><div class="result-label">WPM</div><div class="result-val" id="r-wpm" style="color:var(--accent)">0</div><div class="result-unit">words/min</div></div>
+        <div class="result-item"><div class="result-label">Raw WPM</div><div class="result-val" id="r-raw" style="color:var(--text)">0</div><div class="result-unit">unfiltered</div></div>
+        <div class="result-item"><div class="result-label">Accuracy</div><div class="result-val" id="r-acc" style="color:var(--accent2)">0</div><div class="result-unit">percent</div></div>
+        <div class="result-item"><div class="result-label">Time</div><div class="result-val" id="r-time" style="color:var(--text-dim)">0</div><div class="result-unit">seconds</div></div>
+      </div>
+      <div class="wpm-chart"><canvas id="wpm-canvas"></canvas></div>
+    </div>
+    <div class="controls">
+      <button class="btn primary" onclick="resetTest()">⟳ &nbsp;Restart</button>
+      <button class="btn" onclick="newTest()">↺ &nbsp;New Text</button>
+    </div>
+  </div><!-- /solo -->
+
+  <!-- RACE PANE -->
+  <div id="pane-race">
+    <!-- Lobby -->
+    <div class="race-lobby" id="race-lobby">
+      <h2>Race a Friend</h2>
+      <p>peer-to-peer · no server needed · same text · live progress bars</p>
+      <div class="lobby-cards">
+        <div class="lobby-card" onclick="startHostFlow()">
+          <div class="lobby-card-icon">🏁</div>
+          <div class="lobby-card-title">Host Race</div>
+          <div class="lobby-card-desc">Create a room and share the 4-letter code with your friend</div>
+        </div>
+        <div class="lobby-card" onclick="startJoinFlow()">
+          <div class="lobby-card-icon">⚡</div>
+          <div class="lobby-card-title">Join Race</div>
+          <div class="lobby-card-desc">Enter the 4-letter code from your friend to join their room</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Host setup -->
+    <div class="room-setup" id="host-setup">
+      <div class="room-setup-title">Your Room Code</div>
+      <div class="conn-status" id="host-conn-status"><div class="conn-dot"></div><span id="host-conn-text">Connecting…</span></div>
+      <div class="room-code-display" id="room-code-display" onclick="copyCode()" title="Click to copy">····</div>
+      <div class="room-code-hint">Share this code · click to copy</div>
+      <div class="peer-list">
+        <div class="peer-list-title">Players in Room</div>
+        <div id="peer-list-items"><div class="peer-item"><div class="peer-dot me"></div><span id="host-name-tag">You (Host)</span></div></div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn primary" id="start-race-btn" onclick="hostStartRace()" disabled>Start Race →</button>
+        <button class="btn" onclick="leaveRoom()">← Back</button>
+      </div>
+    </div>
+
+    <!-- Join setup -->
+    <div class="room-setup" id="join-setup">
+      <div class="room-setup-title">Join a Race</div>
+      <div class="conn-status" id="join-conn-status"><div class="conn-dot"></div><span id="join-conn-text">Connecting…</span></div>
+      <div class="join-form">
+        <input class="join-input" id="join-code-input" maxlength="4" placeholder="CODE" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')joinRoom()" disabled>
+        <button class="btn primary" onclick="joinRoom()" disabled>Join →</button>
+      </div>
+      <div id="join-status-msg" style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);margin-bottom:16px;">Enter the 4-letter code your friend shared with you</div>
+      <button class="btn" onclick="leaveRoom()">← Back</button>
+    </div>
+
+    <!-- Race track -->
+    <div class="race-track-section" id="race-track-section">
+      <div class="race-track">
+        <div class="race-track-title">Live Race</div>
+        <div id="racer-rows"></div>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="race-progress-fill"></div></div>
+      <div class="test-container" id="race-test-container" onclick="focusInput()" style="position:relative">
+        <div class="countdown-overlay" id="countdown-overlay">
+          <div class="countdown-num" id="countdown-num">3</div>
+          <div class="countdown-sub">get ready to type</div>
+        </div>
+        <div class="words-wrapper"><div class="words-display" id="race-words-display"></div></div>
+      </div>
+      <div class="race-results" id="race-results">
+        <div class="race-winner-badge" id="race-badge">—</div>
+        <div class="race-winner-name" id="race-winner-name">—</div>
+        <div class="race-stats-grid" id="race-stats-grid"></div>
+      </div>
+      <div class="controls">
+        <button class="btn primary" id="race-again-btn" onclick="hostStartRace()" style="display:none">⟳ &nbsp;Race Again</button>
+        <button class="btn" onclick="leaveRoom()">← Leave Room</button>
+      </div>
+    </div>
+  </div><!-- /race -->
+
+</div><!-- /container -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Word / Quote pools ──────────────────────────────────
+const wordPool = `the be to of and a in that have it for not on with he as you do at this but his by from they we say her she or an will my one all would there their what so up out if about who get which go me when make can like time no just him know take people into year your good some could them see other than then now look only come its over think also back after use two how our work first well way even new want because any these give day most us achieve balance combine develop examine forecast generate identify journey keyboard language manage navigate optimize perform question research strategy technology understand validate welcome exercise familiar glimpse harmony improve`.split(' ');
+
+const quotes = [
+  "The only way to do great work is to love what you do.",
+  "In the middle of every difficulty lies opportunity.",
+  "It does not matter how slowly you go as long as you do not stop.",
+  "The future belongs to those who believe in the beauty of their dreams.",
+  "Success is not final, failure is not fatal: it is the courage to continue that counts.",
+  "The journey of a thousand miles begins with one step.",
+  "To be yourself in a world that is constantly trying to make you something else is the greatest accomplishment.",
+  "Life is what happens when you are busy making other plans.",
+  "practice makes perfect so keep your fingers on the home row and let muscle memory guide you",
+  "touch typing is a skill that improves with deliberate daily practice and focused attention",
+  "speed comes from accuracy and accuracy comes from knowing where every single key is without looking",
+  "the quick brown fox jumps over the lazy dog and then runs back to do it all over again"
+];
+
+// ── Solo State ──────────────────────────────────────────
+let mode = 'timed', subMode = 15;
+let testState = 'idle';
+let wordList = [], typedText = '', elapsed = 0, startTime = null;
+let totalKeys = 0, wrongKeys = 0, wpmHistory = [];
+let soloTimer = null;
+let stats = { bestWpm: null, testCount: 0, totalAcc: 0 };
+let showFingers = false;
+let currentTab = 'solo';
+
+// ── Race State ──────────────────────────────────────────
+let peer = null, myConn = null;
+let isHost = false;
+let myName = genName(), oppName = 'Opponent';
+let raceState = 'lobby';
+let raceText = '', raceTyped = '';
+let raceWrongKeys = 0, raceTotalKeys = 0;
+let raceStartTime = null, raceTimer = null;
+let myRaceWpm = 0, myRaceAcc = 100;
+let oppProgress = 0, oppWpm = 0;
+let raceFinishedBy = null;
+let countdownTimer = null;
+
+function genName() {
+  const a=['swift','bold','keen','sharp','quick','bright','fierce','calm','laser','turbo'];
+  const n=['typer','racer','hawk','fox','ace','star','wolf','jet','key','dash'];
+  return a[Math.floor(Math.random()*a.length)]+'_'+n[Math.floor(Math.random()*n.length)];
+}
+
+// ── Tab switching ───────────────────────────────────────
+function switchTab(tab, btn) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('pane-solo').classList.toggle('active', tab==='solo');
+  document.getElementById('pane-race').classList.toggle('active', tab==='race');
+  if (tab==='solo') { focusInput(); }
+}
+
+// ── Solo ─────────────────────────────────────────────────
+function generateText() {
+  if (mode==='quote') return quotes[Math.floor(Math.random()*quotes.length)];
+  const count = mode==='words' ? subMode : 80;
+  const words = [];
+  for (let i=0;i<count;i++) words.push(wordPool[Math.floor(Math.random()*wordPool.length)]);
+  return words.join(' ');
+}
+
+function renderDisplay(id, text, typed) {
+  const el = document.getElementById(id);
+  // Split text into tokens: words and spaces
+  // Each word is wrapped in inline-block so it never breaks mid-word
+  const tokens = [];
+  let i = 0;
+  while (i < text.length) {
+    if (text[i] === ' ') {
+      tokens.push({ type: 'space', start: i, end: i+1 });
+      i++;
+    } else {
+      let j = i;
+      while (j < text.length && text[j] !== ' ') j++;
+      tokens.push({ type: 'word', start: i, end: j });
+      i = j;
+    }
+  }
+
+  let html = '';
+  for (const tok of tokens) {
+    if (tok.type === 'space') {
+      const i = tok.start;
+      let cls = 'char';
+      if (i < typed.length) cls += typed[i] === text[i] ? ' correct' : ' wrong';
+      else if (i === typed.length) cls += ' current';
+      html += `<span class="${cls}">&nbsp;</span>`;
+    } else {
+      html += `<span style="display:inline-block">`;
+      for (let i = tok.start; i < tok.end; i++) {
+        let cls = 'char';
+        if (i < typed.length) cls += typed[i] === text[i] ? ' correct' : ' wrong';
+        else if (i === typed.length) cls += ' current';
+        html += `<span class="${cls}">${text[i]}</span>`;
+      }
+      html += `</span>`;
+    }
+  }
+
+  el.innerHTML = html;
+  const cur = el.querySelector('.current');
+  if (cur) {
+    const lh = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--line-h'))||68;
+    el.style.transform = `translateY(-${Math.max(0,Math.floor(cur.offsetTop/lh)-1)*lh}px)`;
+  }
+}
+
+function initTest() {
+  clearInterval(soloTimer);
+  testState='idle'; typedText=''; elapsed=0; startTime=null;
+  totalKeys=0; wrongKeys=0; wpmHistory=[];
+  wordList = generateText().split('');
+  renderDisplay('words-display', wordList.join(''), '');
+  document.getElementById('words-display').style.transform='translateY(0px)';
+  document.getElementById('results').classList.remove('show');
+  document.getElementById('test-container').className='test-container';
+  document.getElementById('progress-fill').style.width='0%';
+  document.getElementById('click-hint').style.display='block';
+  document.getElementById('wpm-card').classList.remove('live');
+  document.getElementById('wpm-display').textContent='—';
+  document.getElementById('acc-display').textContent='—';
+  document.getElementById('time-display').textContent='—';
+  document.getElementById('keys-display').textContent='0';
+  const ring=document.getElementById('timer-ring');
+  ring.style.display = mode==='timed'?'flex':'none';
+  if (mode==='timed') {
+    document.getElementById('time-display').textContent=subMode;
+    document.getElementById('timer-text').textContent=subMode;
+    document.getElementById('timer-ring-fill').style.strokeDashoffset='0';
+  }
+}
+
+function startSoloTest() {
+  if (testState!=='idle') return;
+  testState='running'; startTime=Date.now();
+  document.getElementById('test-container').classList.add('active');
+  document.getElementById('click-hint').style.display='none';
+  soloTimer = setInterval(()=>{
+    elapsed=(Date.now()-startTime)/1000;
+    if (mode==='timed') {
+      const rem=Math.ceil(subMode-elapsed);
+      document.getElementById('timer-text').textContent=rem;
+      document.getElementById('timer-ring-fill').style.strokeDashoffset=(elapsed/subMode)*126;
+      document.getElementById('time-display').textContent=rem;
+      if (elapsed>=subMode) { finishSoloTest(); return; }
+    }
+    wpmHistory.push(calcWpm(typedText,wordList.join(''),elapsed));
+    updateSoloStats();
+  }, 250);
+}
+
+function soloInput(e) {
+  const val=e.target.value; e.target.value='';
+  if (testState==='finished') return;
+  if (testState==='idle'&&val.length>0) startSoloTest();
+  if (testState!=='running') return;
+  const text=wordList.join('');
+  for (const ch of val) {
+    if (typedText.length<text.length) {
+      totalKeys++;
+      if (ch!==text[typedText.length]) wrongKeys++;
+      typedText+=ch;
+    }
+  }
+  renderDisplay('words-display',text,typedText);
+  if (mode!=='timed'&&typedText.length>=text.length) finishSoloTest();
+}
+
+function soloKeydown(e) {
+  if (testState==='finished') { if (e.key==='Tab'||e.key==='Enter'){e.preventDefault();resetTest();} return; }
+  highlightKey(e.key);
+  if (e.key==='Backspace') { e.preventDefault(); if(typedText.length>0){typedText=typedText.slice(0,-1);renderDisplay('words-display',wordList.join(''),typedText);} }
+  if (e.key==='Tab') { e.preventDefault(); resetTest(); }
+}
+
+function finishSoloTest() {
+  if (testState==='finished') return;
+  clearInterval(soloTimer); testState='finished';
+  const t=elapsed||(Date.now()-startTime)/1000, mins=t/60;
+  const text=wordList.join('');
+  const correct=countCorrectChars(typedText,text);
+  const wpm=Math.round((correct/5)/mins);
+  const raw=Math.round((totalKeys/5)/mins);
+  const acc=totalKeys>0?Math.round(((totalKeys-wrongKeys)/totalKeys)*100):100;
+  stats.testCount++; stats.totalAcc+=acc;
+  if (!stats.bestWpm||wpm>stats.bestWpm) stats.bestWpm=wpm;
+  document.getElementById('best-wpm').textContent=stats.bestWpm;
+  document.getElementById('test-count').textContent=stats.testCount;
+  document.getElementById('avg-acc').textContent=Math.round(stats.totalAcc/stats.testCount)+'%';
+  document.getElementById('test-container').className='test-container finished';
+  document.getElementById('r-wpm').textContent=wpm;
+  document.getElementById('r-raw').textContent=raw;
+  document.getElementById('r-acc').textContent=acc+'%';
+  document.getElementById('r-time').textContent=Math.round(t)+'s';
+  document.getElementById('results').classList.add('show');
+  drawWpmChart();
+  showToast(wpm>60?'🔥 On fire!':wpm>40?'✓ Good job!':'💡 Keep going!');
+}
+
+function countCorrectChars(typed,text) {
+  let c=0;
+  for (let i=0;i<Math.min(typed.length,text.length);i++) if(typed[i]===text[i]) c++;
+  return c;
+}
+
+function calcWpm(typed,text,secs) {
+  if (secs<=0) return 0;
+  return Math.round((countCorrectChars(typed,text)/5)/(secs/60));
+}
+
+function updateSoloStats() {
+  const wpm=calcWpm(typedText,wordList.join(''),elapsed);
+  const acc=totalKeys>0?Math.round(((totalKeys-wrongKeys)/totalKeys)*100):100;
+  if (testState==='running') {
+    document.getElementById('wpm-display').textContent=wpm;
+    document.getElementById('acc-display').textContent=acc+'%';
+    document.getElementById('keys-display').textContent=`${totalKeys}/${wrongKeys}`;
+    document.getElementById('wpm-card').classList.add('live');
+  }
+  document.getElementById('progress-fill').style.width=wordList.length>0?(typedText.length/wordList.length*100)+'%':'0%';
+}
+
+function drawWpmChart() {
+  const canvas=document.getElementById('wpm-canvas');
+  const dpr=window.devicePixelRatio||1;
+  const rect=canvas.parentElement.getBoundingClientRect();
+  canvas.width=rect.width*dpr; canvas.height=52*dpr;
+  canvas.style.width=rect.width+'px'; canvas.style.height='52px';
+  const ctx=canvas.getContext('2d'); ctx.scale(dpr,dpr);
+  const w=rect.width,h=52;
+  const data=wpmHistory.filter((_,i)=>i%4===0);
+  if (data.length<2) return;
+  const max=Math.max(...data,1);
+  const step=w/(data.length-1);
+  ctx.clearRect(0,0,w,h);
+  ctx.beginPath(); ctx.moveTo(0,h-(data[0]/max)*(h-8)-4);
+  data.forEach((v,i)=>ctx.lineTo(i*step,h-(v/max)*(h-8)-4));
+  ctx.strokeStyle='rgba(232,255,107,0.7)'; ctx.lineWidth=2; ctx.stroke();
+  ctx.lineTo((data.length-1)*step,h); ctx.lineTo(0,h); ctx.closePath();
+  const g=ctx.createLinearGradient(0,0,0,h);
+  g.addColorStop(0,'rgba(232,255,107,0.18)'); g.addColorStop(1,'rgba(232,255,107,0)');
+  ctx.fillStyle=g; ctx.fill();
+}
+
+// ── Race / PeerJS ────────────────────────────────────────
+// ── PeerJS config with reliable STUN servers ──────────
+const PEER_CONFIG = {
+  debug: 0,
+  config: {
+    iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' },
+      { urls: 'stun:stun2.l.google.com:19302' },
+      { urls: 'stun:global.stun.twilio.com:3478' }
+    ]
+  }
+};
+
+function codeToId(code) {
+  // Use a timestamp-salted prefix so room IDs are unique per session
+  return 'tf3-' + code.toUpperCase();
+}
+
+let peerOpenResolver = null; // resolves when peer is open
+
+function makePeer(customId) {
+  if (peer && !peer.destroyed) { try { peer.destroy(); } catch(e){} }
+  peer = customId ? new Peer(customId, PEER_CONFIG) : new Peer(PEER_CONFIG);
+
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      reject(new Error('timeout'));
+    }, 12000);
+
+    peer.on('open', (id) => {
+      clearTimeout(timeout);
+      resolve(id);
+    });
+    peer.on('error', (e) => {
+      clearTimeout(timeout);
+      // unavailable-id: code collision, retry with a new one
+      if (e.type === 'unavailable-id') {
+        reject(new Error('unavailable-id'));
+      } else {
+        reject(e);
+      }
+    });
+  });
+}
+
+function startHostFlow() {
+  isHost = true;
+  document.getElementById('race-lobby').style.display = 'none';
+  document.getElementById('host-setup').classList.add('show');
+  document.getElementById('host-name-tag').textContent = myName + ' (Host)';
+  setConnStatus('host', '', '⏳ Setting up room…');
+  initHost();
+}
+
+async function initHost(attempt) {
+  attempt = attempt || 0;
+  const code = makeCode();
+  try {
+    await makePeer(codeToId(code));
+    document.getElementById('room-code-display').textContent = code;
+    setConnStatus('host', 'ok', '✓ Room ready — share the code with your friend');
+
+    peer.on('connection', (conn) => {
+      if (myConn && myConn.open) { conn.close(); return; }
+      myConn = conn;
+      setupConn(conn);
+      oppName = conn.metadata?.name || 'Opponent';
+      document.getElementById('start-race-btn').disabled = false;
+      const item = document.createElement('div');
+      item.className = 'peer-item';
+      item.innerHTML = `<div class="peer-dot"></div><span>${oppName}</span>`;
+      document.getElementById('peer-list-items').appendChild(item);
+      setConnStatus('host', 'ok', `✓ ${oppName} joined! Click Start Race when ready.`);
+      showToast(`${oppName} joined the room!`);
+    });
+    peer.on('error', (e) => {
+      setConnStatus('host', 'err', '⚠ Connection error: ' + e.type);
+    });
+  } catch(e) {
+    if ((e.message === 'unavailable-id' || e.type === 'unavailable-id') && attempt < 5) {
+      // Room code collision — try a new one silently
+      initHost(attempt + 1);
+    } else {
+      setConnStatus('host', 'err', '⚠ Could not create room. Check your internet and try again.');
+      document.getElementById('room-code-display').textContent = '!ERR';
+    }
+  }
+}
+
+function makeCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 4; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
+}
+
+function startJoinFlow() {
+  isHost = false;
+  document.getElementById('race-lobby').style.display = 'none';
+  document.getElementById('join-setup').classList.add('show');
+  setConnStatus('join', '', '⏳ Initialising…');
+  initJoiner();
+}
+
+async function initJoiner() {
+  try {
+    await makePeer(); // random ID for joiner
+    setConnStatus('join', 'ok', '✓ Ready — enter the 4-letter room code');
+    document.getElementById('join-code-input').disabled = false;
+    document.querySelector('#join-setup .btn.primary').disabled = false;
+  } catch(e) {
+    setConnStatus('join', 'err', '⚠ Could not connect to network. Check your internet.');
+    document.querySelector('#join-setup .btn.primary').textContent = 'Retry';
+    document.querySelector('#join-setup .btn.primary').onclick = () => {
+      setConnStatus('join', '', '⏳ Retrying…');
+      initJoiner();
+    };
+  }
+}
+
+function joinRoom() {
+  const code = document.getElementById('join-code-input').value.trim().toUpperCase();
+  if (code.length !== 4) { showToast('Enter a 4-letter code'); return; }
+  if (!peer || peer.destroyed || peer.disconnected) {
+    setConnStatus('join', 'err', '⚠ Not connected to network yet. Wait a moment and try again.');
+    return;
+  }
+  setConnStatus('join', '', `⏳ Connecting to room ${code}…`);
+  document.getElementById('join-status-msg').textContent = 'Connecting…';
+
+  let conn;
+  try {
+    conn = peer.connect(codeToId(code), { metadata: { name: myName }, reliable: true, serialization: 'json' });
+  } catch(e) {
+    setConnStatus('join', 'err', '⚠ Failed to initiate connection. Try again.');
+    return;
+  }
+
+  const connTimeout = setTimeout(() => {
+    if (!myConn) {
+      setConnStatus('join', 'err', '⚠ Timed out. Make sure the code is correct and host is online.');
+      document.getElementById('join-status-msg').textContent = 'Connection timed out.';
+      try { conn.close(); } catch(e) {}
+    }
+  }, 15000);
+
+  conn.on('open', () => {
+    clearTimeout(connTimeout);
+    myConn = conn;
+    setupConn(conn);
+    setConnStatus('join', 'ok', `✓ Connected! Waiting for ${oppName || 'host'} to start…`);
+    document.getElementById('join-status-msg').innerHTML =
+      `<div class="peer-item"><div class="peer-dot"></div><span>Connected — waiting for host to start the race</span></div>`;
+    showToast('Connected! Waiting for host…');
+  });
+
+  conn.on('error', (e) => {
+    clearTimeout(connTimeout);
+    setConnStatus('join', 'err', '⚠ Could not connect. Check the code is correct.');
+    document.getElementById('join-status-msg').textContent = 'Failed to connect. Check the code and try again.';
+  });
+}
+
+function setupConn(conn) {
+  conn.on('data', handleMsg);
+  conn.on('close', () => {
+    if (raceState === 'racing' || raceState === 'countdown') {
+      showToast('Opponent disconnected');
+      endRace(null, true);
+    } else {
+      showToast('Disconnected from room');
+    }
+  });
+}
+
+function handleMsg(msg) {
+  if (msg.type==='START_RACE') {
+    raceText=msg.text; oppName=msg.hostName||oppName;
+    beginCountdown();
+  } else if (msg.type==='PROGRESS') {
+    oppProgress=msg.pct; oppWpm=msg.wpm||0;
+    updateRaceTrack();
+    if (msg.finished&&raceFinishedBy===null) {
+      raceFinishedBy='them';
+      endRace({wpm:msg.wpm,acc:msg.acc,name:oppName},false);
+    }
+  } else if (msg.type==='RACE_AGAIN') {
+    showToast('Host is starting a new race…');
+  }
+}
+
+function hostStartRace() {
+  if (!isHost||!myConn) return;
+  const texts=quotes.concat([
+    "the quick brown fox jumps over the lazy dog and never looks back",
+    "practice makes perfect so keep your fingers on the home row",
+    "touch typing is a skill that improves with deliberate daily practice",
+    "speed comes from accuracy and accuracy comes from knowing every key"
+  ]);
+  raceText=texts[Math.floor(Math.random()*texts.length)];
+  myConn.send({type:'START_RACE',text:raceText,hostName:myName});
+  beginCountdown();
+}
+
+function beginCountdown() {
+  raceState='countdown';
+  raceTyped=''; raceWrongKeys=0; raceTotalKeys=0;
+  raceStartTime=null; myRaceWpm=0; myRaceAcc=100;
+  oppProgress=0; oppWpm=0; raceFinishedBy=null;
+
+  document.getElementById('host-setup').classList.remove('show');
+  document.getElementById('join-setup').classList.remove('show');
+  document.getElementById('race-lobby').style.display='none';
+  document.getElementById('race-track-section').classList.add('show');
+  document.getElementById('race-results').classList.remove('show');
+  document.getElementById('race-again-btn').style.display='none';
+  document.getElementById('race-test-container').className='test-container';
+
+  // Build racers
+  document.getElementById('racer-rows').innerHTML=`
+    <div class="racer-row">
+      <div class="racer-name me">${myName}</div>
+      <div class="racer-track"><div class="racer-fill me" id="my-fill"></div></div>
+      <div class="racer-wpm me" id="my-wpm">0</div>
+    </div>
+    <div class="racer-row">
+      <div class="racer-name">${oppName}</div>
+      <div class="racer-track"><div class="racer-fill them" id="opp-fill"></div></div>
+      <div class="racer-wpm" id="opp-wpm">0</div>
+    </div>`;
+
+  renderDisplay('race-words-display',raceText,'');
+  document.getElementById('race-words-display').style.transform='translateY(0px)';
+
+  const overlay=document.getElementById('countdown-overlay');
+  const numEl=document.getElementById('countdown-num');
+  overlay.classList.add('show');
+  let count=3; numEl.textContent=count;
+  clearInterval(countdownTimer);
+  countdownTimer=setInterval(()=>{
+    count--;
+    if (count<=0) {
+      clearInterval(countdownTimer);
+      numEl.textContent='GO!';
+      setTimeout(()=>{ overlay.classList.remove('show'); startRaceTyping(); },650);
+    } else {
+      numEl.style.animation='none'; numEl.offsetHeight; numEl.style.animation='';
+      numEl.textContent=count;
+    }
+  },1000);
+}
+
+function startRaceTyping() {
+  raceState='racing'; raceStartTime=Date.now();
+  document.getElementById('race-test-container').classList.add('active');
+  focusInput();
+  clearInterval(raceTimer);
+  raceTimer=setInterval(()=>{
+    if (raceState!=='racing') return;
+    const secs=(Date.now()-raceStartTime)/1000, mins=secs/60;
+    const correct=countCorrectChars(raceTyped,raceText);
+    myRaceWpm=mins>0?Math.round((correct/5)/mins):0;
+    myRaceAcc=raceTotalKeys>0?Math.round(((raceTotalKeys-raceWrongKeys)/raceTotalKeys)*100):100;
+    updateRaceTrack();
+    if (myConn&&myConn.open) myConn.send({type:'PROGRESS',pct:raceText.length>0?(raceTyped.length/raceText.length*100):0,wpm:myRaceWpm,acc:myRaceAcc,finished:false});
+  },200);
+}
+
+function updateRaceTrack() {
+  const pct=raceText.length>0?Math.min(100,raceTyped.length/raceText.length*100):0;
+  const mf=document.getElementById('my-fill'); if(mf) mf.style.width=pct+'%';
+  const mw=document.getElementById('my-wpm'); if(mw) mw.textContent=myRaceWpm;
+  const of=document.getElementById('opp-fill'); if(of) of.style.width=Math.min(100,oppProgress)+'%';
+  const ow=document.getElementById('opp-wpm'); if(ow) ow.textContent=oppWpm;
+  document.getElementById('race-progress-fill').style.width=pct+'%';
+}
+
+function raceInput(e) {
+  const val=e.target.value; e.target.value='';
+  if (raceState!=='racing') return;
+  for (const ch of val) {
+    if (raceTyped.length<raceText.length) {
+      raceTotalKeys++;
+      if (ch!==raceText[raceTyped.length]) raceWrongKeys++;
+      raceTyped+=ch;
+    }
+  }
+  renderDisplay('race-words-display',raceText,raceTyped);
+  if (raceTyped.length>=raceText.length) {
+    const secs=(Date.now()-raceStartTime)/1000, mins=secs/60;
+    const wpm=Math.round((countCorrectChars(raceTyped,raceText)/5)/mins);
+    const acc=raceTotalKeys>0?Math.round(((raceTotalKeys-raceWrongKeys)/raceTotalKeys)*100):100;
+    if (myConn&&myConn.open) myConn.send({type:'PROGRESS',pct:100,wpm,acc,finished:true});
+    if (raceFinishedBy===null) { raceFinishedBy='me'; endRace({wpm,acc,name:myName},true); }
+  }
+}
+
+function raceKeydown(e) {
+  if (raceState!=='racing') return;
+  highlightKey(e.key);
+  if (e.key==='Backspace'){e.preventDefault();if(raceTyped.length>0){raceTyped=raceTyped.slice(0,-1);renderDisplay('race-words-display',raceText,raceTyped);}}
+}
+
+function endRace(finisher, iWon) {
+  clearInterval(raceTimer); raceState='finished';
+  document.getElementById('race-test-container').className='test-container finished';
+  const secs=raceStartTime?(Date.now()-raceStartTime)/1000:0;
+  const mins=secs/60;
+  const myWpm=raceStartTime?Math.max(myRaceWpm,Math.round((countCorrectChars(raceTyped,raceText)/5)/Math.max(mins,0.01))):0;
+  const myAcc=raceTotalKeys>0?Math.round(((raceTotalKeys-raceWrongKeys)/raceTotalKeys)*100):100;
+
+  const badge=document.getElementById('race-badge');
+  const winName=document.getElementById('race-winner-name');
+  const grid=document.getElementById('race-stats-grid');
+
+  if (finisher===null) {
+    badge.className='race-winner-badge tie'; badge.textContent='Opponent Left';
+    winName.textContent='—';
+    grid.innerHTML=buildStatCol(myName,myWpm,myAcc+'%',true)+buildStatCol(oppName,'?','—',false);
+  } else if (iWon) {
+    badge.className='race-winner-badge win'; badge.textContent='🏆 You Won!';
+    winName.textContent=myName;
+    grid.innerHTML=buildStatCol(myName,finisher.wpm,finisher.acc+'%',true)+buildStatCol(oppName,oppWpm,'—',false);
+  } else {
+    badge.className='race-winner-badge loss'; badge.textContent='Better luck next race';
+    winName.textContent=finisher.name;
+    grid.innerHTML=buildStatCol(finisher.name,finisher.wpm,finisher.acc+'%',true)+buildStatCol(myName,myWpm,myAcc+'%',false);
+  }
+
+  document.getElementById('race-results').classList.add('show');
+  if (isHost) document.getElementById('race-again-btn').style.display='flex';
+  showToast(finisher===null?'Opponent left':(iWon?'🏆 You won the race!':finisher.name+' wins!'));
+}
+
+function buildStatCol(name,wpm,acc,winner) {
+  return `<div class="race-stat-col${winner?' winner':''}">
+    <div class="race-col-name">${winner?'🏆 ':''}${name}</div>
+    <div class="race-col-wpm" style="${!winner?'color:var(--text-dim)':''}">${wpm}</div>
+    <div class="race-col-acc">${acc} accuracy</div>
+  </div>`;
+}
+
+function leaveRoom() {
+  clearInterval(raceTimer); clearInterval(countdownTimer);
+  if (myConn){myConn.close();myConn=null;}
+  if (peer){peer.destroy();peer=null;}
+  raceState='lobby';
+  document.getElementById('race-lobby').style.display='block';
+  document.getElementById('host-setup').classList.remove('show');
+  document.getElementById('join-setup').classList.remove('show');
+  document.getElementById('race-track-section').classList.remove('show');
+  document.getElementById('race-results').classList.remove('show');
+  document.getElementById('race-again-btn').style.display='none';
+  document.getElementById('countdown-overlay').classList.remove('show');
+  document.getElementById('peer-list-items').innerHTML=`<div class="peer-item"><div class="peer-dot me"></div><span id="host-name-tag">You (Host)</span></div>`;
+  document.getElementById('join-code-input').value='';
+  document.getElementById('join-code-input').disabled=true;
+  const joinBtn=document.querySelector('#join-setup .btn.primary');
+  if(joinBtn){joinBtn.disabled=true;joinBtn.textContent='Join →';joinBtn.onclick=joinRoom;}
+  document.getElementById('start-race-btn').disabled=true;
+}
+
+function setConnStatus(side,state,msg) {
+  const el=document.getElementById(side+'-conn-status');
+  const txt=document.getElementById(side+'-conn-text');
+  el.className='conn-status'+(state?' '+state:'');
+  txt.textContent=msg;
+}
+
+function copyCode() {
+  const code=document.getElementById('room-code-display').textContent;
+  if (code==='····') return;
+  navigator.clipboard.writeText(code).then(()=>showToast('Code copied!')).catch(()=>{});
+}
+
+// ── Shared utils ─────────────────────────────────────────
+function highlightKey(key) {
+  const k=key.toLowerCase();
+  const el=document.querySelector(`[data-key="${k}"]`)||document.querySelector(`[data-key="${key}"]`);
+  if(el) el.classList.add('pressed');
+}
+function unhighlightKey(key) {
+  const k=key.toLowerCase();
+  const el=document.querySelector(`[data-key="${k}"]`)||document.querySelector(`[data-key="${key}"]`);
+  if(el) el.classList.remove('pressed');
+}
+
+function setMode(m,btn) {
+  mode=m;
+  document.querySelectorAll('[data-mode]').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const iW=m==='words',iT=m==='timed';
+  document.querySelectorAll('.mode-btn.sub-btn:not(.word-btn)').forEach(b=>b.style.display=iT?'':'none');
+  document.querySelectorAll('.word-btn').forEach(b=>b.style.display=iW?'':'none');
+  document.getElementById('word-sep').style.display=(iT||iW)?'':'none';
+  document.getElementById('word-label').style.display=iW?'':'none';
+  if(iW){subMode=25;document.querySelector('.word-btn[data-sub="25"]').classList.add('active');document.querySelectorAll('.word-btn').forEach(b=>{if(b.dataset.sub!='25')b.classList.remove('active');});}
+  else if(iT){subMode=15;document.querySelector('.sub-btn[data-sub="15"]').classList.add('active');document.querySelectorAll('.sub-btn:not(.word-btn)').forEach(b=>{if(b.dataset.sub!='15')b.classList.remove('active');});}
+  newTest();
+}
+function setSub(s,btn) {
+  subMode=s;
+  btn.closest('.mode-bar').querySelectorAll('.sub-btn').forEach(b=>{if((b.classList.contains('word-btn'))===(mode==='words'))b.classList.remove('active');});
+  btn.classList.add('active'); newTest();
+}
+function resetTest(){initTest();focusInput();}
+function newTest(){initTest();focusInput();}
+function focusInput(){document.getElementById('typing-input').focus();}
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2400);
+}
+
+// Input routing — one input element handles both solo and race
+document.getElementById('typing-input').addEventListener('input',e=>{
+  if(currentTab==='solo') soloInput(e);
+  else raceInput(e);
+});
+document.getElementById('typing-input').addEventListener('keydown',e=>{
+  if(currentTab==='solo') soloKeydown(e);
+  else raceKeydown(e);
+});
+document.getElementById('typing-input').addEventListener('keyup',e=>unhighlightKey(e.key));
+
+window.addEventListener('keydown',e=>{
+  if(e.target.id!=='typing-input'){highlightKey(e.key);if(e.key===' '||e.key==='Tab')e.preventDefault();}
+});
+window.addEventListener('keyup',e=>{if(e.target.id!=='typing-input')unhighlightKey(e.key);});
+
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.mode-btn')&&!e.target.closest('.btn')&&!e.target.closest('.toggle')&&!e.target.closest('.lobby-card')&&!e.target.closest('.tab')&&!e.target.closest('.join-input')&&!e.target.closest('.room-code-display'))
+    focusInput();
+});
+
+
+function toggleTheme() {
+  const isLight = document.body.classList.toggle('light');
+  document.getElementById('theme-toggle').textContent = isLight ? '☀️' : '🌙';
+  // Update fade gradient — re-render displays so wrapper ::before/::after pick up new --surface
+  // Force repaint of words wrappers
+  document.querySelectorAll('.words-display').forEach(d => {
+    const t = d.style.transform;
+    d.style.transform = t; // trigger repaint
+  });
+}
+
+initTest(); focusInput();
+</script>
+</body>
+</html>
