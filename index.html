@@ -774,6 +774,7 @@ function startHostFlow() {
     socket.emit('create-room', { name: myName }, (res) => {
       if (res && res.success) {
         document.getElementById('room-code-display').textContent = res.code;
+        document.getElementById('start-race-btn').disabled = false;
         setConnStatus('host', 'ok', '✓ Room ready — share the code with your friend');
       } else {
         setConnStatus('host', 'err', '⚠ Could not create room on backend.');
@@ -790,6 +791,7 @@ async function initHost(attempt) {
   try {
     await makePeer(codeToId(code));
     document.getElementById('room-code-display').textContent = code;
+    document.getElementById('start-race-btn').disabled = false;
     setConnStatus('host', 'ok', '✓ Room ready — share the code with your friend (PeerJS Mode)');
 
     peer.on('connection', (conn) => {
@@ -949,21 +951,22 @@ function handleMsg(msg) {
 }
 
 function hostStartRace() {
-  if (!isHost) return;
-  const texts=quotes.concat([
+  isHost = true;
+  const texts = quotes.concat([
     "the quick brown fox jumps over the lazy dog and never looks back",
     "practice makes perfect so keep your fingers on the home row",
     "touch typing is a skill that improves with deliberate daily practice",
     "speed comes from accuracy and accuracy comes from knowing every key"
   ]);
-  raceText=texts[Math.floor(Math.random()*texts.length)];
+  raceText = texts[Math.floor(Math.random() * texts.length)];
 
   if (useBackendSocket && socket && socket.connected) {
     socket.emit('start-race', { text: raceText });
   } else if (myConn && myConn.open) {
-    myConn.send({type:'START_RACE',text:raceText,hostName:myName});
-    beginCountdown();
+    myConn.send({ type: 'START_RACE', text: raceText, hostName: myName });
   }
+
+  beginCountdown();
 }
 
 function beginCountdown() {
